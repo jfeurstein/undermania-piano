@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UNDERMANIA — Laboratorio Universitario de Piano &amp; Lector MIDI / MSCZ</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <!-- Header Principal -->
+  <header class="top-header">
+    <div class="brand-block">
+      <div class="brand-logo">U</div>
+      <div class="brand-titles">
+        <h1>Undermania</h1>
+        <div class="brand-subtitle">Cátedra Superior de Piano · Lector MIDI (.mid) &amp; Partituras (.mscz)</div>
+      </div>
+    </div>
+
+    <div class="header-controls">
+      <div class="control-pill">
+        <label for="repertoireSelect">Obra:</label>
+        <select id="repertoireSelect"></select>
+        <button id="uploadBtn" class="btn btn-primary" title="Cargar archivo .mid, .midi, .mscz o .mscx">
+          📂 Abrir .MID / .MSCZ
+        </button>
+        <input id="fileInput" type="file" accept=".mid,.midi,.mscz,.mscx" style="display: none;" />
+      </div>
+
+      <div class="control-pill">
+        <span id="midiStatusDot" class="midi-status-dot"></span>
+        <label for="midiDeviceSelect">Teclado MIDI:</label>
+        <select id="midiDeviceSelect">
+          <option value="all">Todos los Teclados MIDI</option>
+        </select>
+        <span id="midiStatusText" style="font-size: 11px; color: var(--color-tertiary);">Buscando MIDI...</span>
+      </div>
+    </div>
+
+    <div class="stats-strip">
+      <div class="stat-item">
+        <span class="stat-label">Aciertos</span>
+        <span id="statHits" class="stat-value correct">0</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Errores</span>
+        <span id="statErrors" class="stat-value error">0</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Precisión</span>
+        <span id="statAccuracy" class="stat-value">100%</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Racha</span>
+        <span id="statStreak" class="stat-value">0</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Área de Trabajo Principal -->
+  <div class="workspace">
+    <!-- Panel Lateral de Controles Académicos -->
+    <aside class="sidebar">
+      <!-- 1. MODO DE PRÁCTICA -->
+      <section class="panel-card">
+        <div class="panel-title">
+          <span>1. Modo de Práctica</span>
+          <span class="badge">Interactivo</span>
+        </div>
+
+        <div class="control-row">
+          <label for="waitToggle" title="Las notas no avanzan hasta que las toques en el teclado">
+            Esperar a que toque la nota
+          </label>
+          <label class="toggle-switch">
+            <input id="waitToggle" type="checkbox" checked />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 5px;">
+          <span style="font-size: 11px; color: var(--color-tertiary); font-weight: 600;">
+            Separación de Manos:
+          </span>
+          <div class="segmented-group">
+            <button class="btn active" data-hand="both">Ambas</button>
+            <button class="btn" data-hand="right">M. Derecha</button>
+            <button class="btn" data-hand="left">M. Izquierda</button>
+          </div>
+        </div>
+
+        <div class="speed-slider-wrap">
+          <div class="control-row">
+            <label for="speedSlider">Velocidad de Canción:</label>
+            <strong id="speedValueLabel" style="color: var(--color-primary);">100%</strong>
+          </div>
+          <input id="speedSlider" type="range" min="25" max="200" step="5" value="100" />
+          <div class="speed-presets">
+            <button class="btn" data-speed="50">50%</button>
+            <button class="btn" data-speed="75">75%</button>
+            <button class="btn active" data-speed="100">100%</button>
+            <button class="btn" data-speed="125">125%</button>
+            <button class="btn" data-speed="150">150%</button>
+          </div>
+        </div>
+
+        <div style="border-top: 1px solid rgba(189, 143, 204, 0.16); padding-top: 8px; display: flex; flex-direction: column; gap: 7px;">
+          <div class="control-row">
+            <label for="loopToggle">Bucle de Sección (Loop A–B):</label>
+            <label class="toggle-switch">
+              <input id="loopToggle" type="checkbox" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="segmented-group">
+            <button id="setLoopABtn" class="btn">Fijar A</button>
+            <button id="setLoopBBtn" class="btn">Fijar B</button>
+            <button id="clearLoopBtn" class="btn">Limpiar</button>
+          </div>
+          <div id="loopRangeText" style="font-size: 11px; color: var(--color-tertiary); font-family: monospace;">
+            A: 0:00 · B: 0:08 (Inactivo)
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. VISUALIZACIONES Y LECTURA -->
+      <section class="panel-card">
+        <div class="panel-title">
+          <span>2. Visualización y Lectura</span>
+          <span class="badge">Solfeo &amp; Dedos</span>
+        </div>
+
+        <div class="control-row">
+          <label for="solfegeToggle">Solfeo en Notas (Do Re Mi...)</label>
+          <label class="toggle-switch">
+            <input id="solfegeToggle" type="checkbox" checked />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 5px;">
+          <span style="font-size: 11px; color: var(--color-tertiary); font-weight: 600;">
+            Notación de Alteraciones:
+          </span>
+          <div class="segmented-group two-col">
+            <button class="btn active" data-accidental="sharp">♯ Sostenidos (Do#)</button>
+            <button class="btn" data-accidental="flat">♭ Bemoles (Reb)</button>
+          </div>
+        </div>
+
+        <div class="control-row">
+          <label for="fingeringToggle">Números de Dedo (1 al 5)</label>
+          <label class="toggle-switch">
+            <input id="fingeringToggle" type="checkbox" checked />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 5px;">
+          <span style="font-size: 11px; color: var(--color-tertiary); font-weight: 600;">
+            Avance del Pentagrama:
+          </span>
+          <div class="segmented-group two-col">
+            <button class="btn active" data-scrollmode="horizontal">Desplazamiento Horiz.</button>
+            <button class="btn" data-scrollmode="page">Salto de Página Auto.</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. LEYENDA DE ANÁLISIS DE EJECUCIÓN -->
+      <section class="panel-card">
+        <div class="panel-title">
+          <span>3. Análisis de Ejecución</span>
+          <span class="badge">Tiempo Real</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <div class="legend-pill">
+            <span class="swatch" style="background: #00FFFF;"></span>
+            <span>Mano Derecha (Principal <code>#00FFFF</code>)</span>
+          </div>
+          <div class="legend-pill">
+            <span class="swatch" style="background: #6C439C; border: 1px solid #BD8FCC;"></span>
+            <span>Mano Izquierda (Secundario <code>#6C439C</code>)</span>
+          </div>
+          <div class="legend-pill">
+            <span class="swatch" style="background: #00E676;"></span>
+            <span>Nota Acertada en Pentagrama (Verde)</span>
+          </div>
+          <div class="legend-pill">
+            <span class="swatch" style="background: #FF3366;"></span>
+            <span>Nota Equivocada en Pentagrama (Rojo)</span>
+          </div>
+        </div>
+        <div style="font-size: 11px; color: var(--color-tertiary); line-height: 1.4; border-top: 1px solid rgba(189,143,204,0.15); padding-top: 6px;">
+          <strong>Atajo Teclado PC:</strong> Fila <code>A S D F G H J K L</code> (blancas Do4–Mi5), <code>W E T Y U O P</code> (negras), <code>Z X C V B N M</code> (octava grave Do3–Si3), <code>Espacio</code> Pausar/Reproducir.
+        </div>
+      </section>
+    </aside>
+
+    <!-- Escenario Central -->
+    <main class="stage">
+      <!-- Barra de Transporte y Línea de Tiempo con Bucle A-B -->
+      <div class="transport-bar">
+        <button id="playPauseBtn" class="btn btn-primary">▶ Tocar / Practicar</button>
+        <button id="restartBtn" class="btn btn-secondary">⏮ Reiniciar</button>
+
+        <div id="timelineContainer" class="timeline-container" title="Haz clic para saltar a cualquier punto de la canción">
+          <div id="timelineProgress" class="timeline-progress"></div>
+          <div id="timelineLoopRegion" class="timeline-loop-region"></div>
+          <div class="timeline-label">
+            <span id="timeCurrentLabel">0:00</span>
+            <span id="songMetaLabel">Cargando obra...</span>
+            <span id="timeTotalLabel">0:00</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Visor Superior: Pentagrama (Clave de Sol y Fa) con detección de errores Verde/Rojo -->
+      <section class="staff-section">
+        <div class="staff-header">
+          <span><strong>PENTAGRAMA ACADÉMICO SINCRONIZADO</strong> · Verde = Nota Acertada · Rojo = Nota Equivocada</span>
+          <span id="staffPageBadge" style="color: var(--color-primary); font-weight: 700;">Desplazamiento Horizontal Continuo</span>
+        </div>
+        <div class="staff-canvas-wrap">
+          <canvas id="staffCanvas"></canvas>
+        </div>
+      </section>
+
+      <!-- Barra de Precisión de Timing (Antes / Perfecto / Después) -->
+      <section class="timing-bar-section">
+        <div class="timing-title">Precisión de Timing</div>
+        <div class="timing-meter">
+          <div class="timing-zones">
+            <div class="zone-early">◀ ANTES (-150 ms)</div>
+            <div class="zone-late">DESPUÉS (+150 ms) ▶</div>
+          </div>
+          <div class="timing-center-line"></div>
+          <div id="timingIndicator" class="timing-indicator"></div>
+        </div>
+        <div id="timingReadout" class="timing-readout">0 ms · LISTO</div>
+      </section>
+
+      <!-- Visor Inferior: Cascada de Notas (Estilo Neothesia) + Teclado de Piano -->
+      <section class="waterfall-section">
+        <div id="waitBanner" class="wait-banner">
+          <span>⏳</span>
+          <span id="waitBannerText">Esperando nota...</span>
+        </div>
+        <canvas id="waterfallCanvas"></canvas>
+      </section>
+    </main>
+  </div>
+
+  <script src="js/parsers.js"></script>
+  <script src="js/audio-midi.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
